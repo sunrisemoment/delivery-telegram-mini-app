@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentMethod {
+  bitcoin
+  cod
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+}
+
+enum OrderStatus {
+  pending
+  assigned
+  out_for_delivery
+  delivered
+  cancelled
+}
+
+model User {
+  id          String    @id @default(uuid()) @db.Uuid
+  telegramId  BigInt    @unique
+  firstName   String?
+  lastName    String?
+  phoneNumber String?
+  createdAt   DateTime  @default(now())
+
+  addresses Address[]
+  orders    Order[]
+}
+
+model Address {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  addressLine1 String
+  addressLine2 String?
+  city         String   @default("Atlanta")
+  state        String   @default("GA")
+  zipCode      String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId, isDefault])
+}
+
+model Driver {
+  id         String    @id @default(uuid()) @db.Uuid
+  name       String
+  phone      String
+  telegramId BigInt?   @unique
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  orders         Order[]
+  deliveryProofs DeliveryProof[]
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  orderItems OrderItem[]
+}
+
+model Order {
+  id            String        @id @default(uuid()) @db.Uuid
+  userId        String        @db.Uuid
+  driverId      String?       @db.Uuid
+  addressId     String        @db.Uuid
+  orderNumber   String        @unique
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus @default(pending)
+  orderStatus   OrderStatus   @default(pending)
+  deliveryPhoto String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  driver        Driver?        @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  address       Address        @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  items         OrderItem[]
+  events        OrderEvent[]
+  deliveryProof DeliveryProof?
+
+  @@index([orderStatus, createdAt])
+  @@index([driverId, orderStatus])
+}
+
+model OrderItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  orderId   String  @db.Uuid
+  productId String  @db.Uuid
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+}
+
+model OrderEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @db.Uuid
+  eventType String
+  actorType String
+  actorId   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+model DeliveryProof {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @unique @db.Uuid
+  driverId  String   @db.Uuid
+  photoUrl  String
+  lat       Decimal? @db.Decimal(9, 6)
+  lng       Decimal? @db.Decimal(9, 6)
+  createdAt DateTime @default(now())
+
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Restrict)
+
+  @@index([driverId, createdAt])
+}

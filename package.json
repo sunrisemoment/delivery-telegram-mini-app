@@ -1,0 +1,16 @@
+{
+  "name": "telegram-delivery-app",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "backend",
+    "mini-app",
+    "admin-dashboard"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace backend run dev",
+    "dev:mini": "npm --workspace mini-app run dev",
+    "dev:admin": "npm --workspace admin-dashboard run dev",
+    "build": "npm --workspace backend run build && npm --workspace mini-app run build && npm --workspace admin-dashboard run build"
+  }
+}

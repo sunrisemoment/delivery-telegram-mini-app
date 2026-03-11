@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: delivery_app
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://admin:password@postgres:5432/delivery_app?schema=public
+      JWT_SECRET: replace_with_secure_secret
+      BOT_TOKEN: ${BOT_TOKEN}
+      MINI_APP_URL: ${MINI_APP_URL:-http://localhost:3002}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+      UPLOAD_DIR: uploads
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      - postgres
+
+  admin-dashboard:
+    build:
+      context: ./admin-dashboard
+    ports:
+      - "3001:3001"
+    environment:
+      VITE_ADMIN_API_BASE_URL: http://localhost:3000/api
+    depends_on:
+      - backend
+
+  mini-app:
+    build:
+      context: ./mini-app
+    ports:
+      - "3002:3002"
+    environment:
+      VITE_API_BASE_URL: http://localhost:3000/api
+      VITE_TELEGRAM_BOT_USERNAME: ${VITE_TELEGRAM_BOT_USERNAME}
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

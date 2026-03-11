@@ -1,0 +1,6 @@
+# Ignore build output and uploaded images
+dist
+node_modules
+uploads/*
+!uploads/.gitkeep
+.env
