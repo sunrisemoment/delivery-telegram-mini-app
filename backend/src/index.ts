@@ -18,7 +18,7 @@ const bootstrap = async (): Promise<void> => {
   initRealtimeServer(server);
   initTelegramBot();
 
-  server.listen(env.PORT, () => {
+  server.listen(env.PORT, '0.0.0.0', () => {
     console.log(`Backend listening on http://localhost:${env.PORT}`);
   });
 };
