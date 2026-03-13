@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CartSummary } from "../components/CartSummary";
+import { MiniAppTopBar } from "../components/MiniAppTopBar";
 import { ProductCard } from "../components/ProductCard";
 import { useCart } from "../hooks/useCart";
 import { useTelegram } from "../hooks/useTelegram";
@@ -19,10 +20,10 @@ export const ShopPage = () => {
     setError(null);
     api
       .listProducts()
-      .then((response) => setProducts(response as Product[]))
-      .catch((error: unknown) => {
-        console.error(error);
-        setError(error instanceof Error ? error.message : "Failed to load products");
+      .then((response) => setProducts(response))
+      .catch((currentError: unknown) => {
+        console.error(currentError);
+        setError(currentError instanceof Error ? currentError.message : "Failed to load products");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -50,21 +51,24 @@ export const ShopPage = () => {
 
   return (
     <main className="min-h-screen bg-hero-mesh pb-24">
-      <section className="mx-auto max-w-xl px-4 py-6">
-        <header className="mb-6 rounded-3xl bg-slate-900/95 p-5 text-white shadow-lg">
+      <section className="mx-auto max-w-xl px-4 py-5">
+        <MiniAppTopBar
+          title="Atlanta Delivery"
+          subtitle={user?.first_name ? `Hi ${user.first_name}, build your order.` : "Private fleet store"}
+        />
+
+        <div className="mb-6 overflow-hidden rounded-[30px] bg-slate-900/95 p-5 text-white shadow-xl shadow-slate-900/15">
           <p className="text-xs uppercase tracking-[0.22em] text-brand-100">Private Atlanta Fleet</p>
-          <h1 className="font-display text-3xl">Atlanta Delivery</h1>
-          <p className="mt-2 text-sm text-slate-200">
-            {user?.first_name ? `Hi ${user.first_name}, pick what you need.` : "Browse and order in seconds."}
+          <h1 className="mt-2 font-display text-3xl">Fast local delivery inside Telegram</h1>
+          <p className="mt-3 max-w-md text-sm text-slate-200">
+            Add items to your cart, choose cash or BTC, and track your active orders from one place.
           </p>
-        </header>
+        </div>
 
         {loading ? (
           <div className="rounded-2xl bg-white/80 p-6 text-center text-slate-600">Loading inventory...</div>
         ) : error ? (
-          <div className="rounded-2xl bg-rose-50 p-6 text-center text-rose-700">
-            Unable to load inventory: {error}
-          </div>
+          <div className="rounded-2xl bg-rose-50 p-6 text-center text-rose-700">Unable to load inventory: {error}</div>
         ) : (
           <div className="grid gap-4">
             {products.map((product) => (

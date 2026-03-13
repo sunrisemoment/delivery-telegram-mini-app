@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MiniAppTopBar } from "../components/MiniAppTopBar";
 import { useCart } from "../hooks/useCart";
 import { useTelegram } from "../hooks/useTelegram";
 import { api } from "../services/api";
@@ -66,30 +67,20 @@ export const CheckoutPage = () => {
         paymentMethod: paymentMethodMap[paymentMethod],
       });
       clearCart();
-      setStatusMessage("Order placed successfully.");
-    } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "Failed to place order");
+      navigate("/orders");
+    } catch (currentError) {
+      setStatusMessage(currentError instanceof Error ? currentError.message : "Failed to place order");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-6">
+    <main className="min-h-screen bg-slate-100 px-4 py-5">
       <section className="mx-auto max-w-xl space-y-4">
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="text-sm font-semibold text-brand-600 transition hover:text-brand-900"
-        >
-          ← Back to products
-        </button>
-        <div className="rounded-2xl bg-white p-4 shadow-sm">
-          <h1 className="font-display text-2xl text-slate-900">Checkout</h1>
-          <p className="mt-1 text-sm text-slate-500">Confirm address and payment method.</p>
-        </div>
+        <MiniAppTopBar title="Checkout" subtitle="Review your cart and confirm payment" showBack backTo="/" />
 
-        <article className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <article className="space-y-3 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm">
           <h3 className="font-display text-lg text-slate-900">Delivery Address</h3>
           <input
             className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
@@ -126,39 +117,37 @@ export const CheckoutPage = () => {
           </div>
         </article>
 
-        <article className="rounded-2xl bg-white p-4 shadow-sm">
+        <article className="rounded-[28px] bg-white p-4 shadow-sm">
           <h3 className="font-display text-lg text-slate-900">Payment</h3>
           <div className="mt-3 grid gap-2">
-            <label className="flex items-center gap-2 rounded-xl border border-slate-300 p-3 text-sm">
-              <input
-                type="radio"
-                checked={paymentMethod === "cash"}
-                onChange={() => setPaymentMethod("cash")}
-                name="paymentMethod"
-              />
-              Cash
+            <label className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-sm ${paymentMethod === "cash" ? "border-brand-600 bg-brand-50" : "border-slate-300"}`}>
+              <div>
+                <p className="font-semibold text-slate-900">Cash</p>
+                <p className="text-xs text-slate-500">Pay on delivery</p>
+              </div>
+              <input type="radio" checked={paymentMethod === "cash"} onChange={() => setPaymentMethod("cash")} name="paymentMethod" />
             </label>
-            <label className="flex items-center gap-2 rounded-xl border border-slate-300 p-3 text-sm">
-              <input
-                type="radio"
-                checked={paymentMethod === "btc"}
-                onChange={() => setPaymentMethod("btc")}
-                name="paymentMethod"
-              />
-              BTC
+            <label className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-sm ${paymentMethod === "btc" ? "border-brand-600 bg-brand-50" : "border-slate-300"}`}>
+              <div>
+                <p className="font-semibold text-slate-900">BTC</p>
+                <p className="text-xs text-slate-500">Bitcoin payment</p>
+              </div>
+              <input type="radio" checked={paymentMethod === "btc"} onChange={() => setPaymentMethod("btc")} name="paymentMethod" />
             </label>
           </div>
         </article>
 
-        <article className="rounded-2xl bg-white p-4 shadow-sm">
-          <h3 className="font-display text-lg text-slate-900">Order Summary</h3>
-          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+        <article className="rounded-[28px] bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-display text-lg text-slate-900">Cart</h3>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{items.length} lines</span>
+          </div>
+
+          <ul className="mt-3 space-y-3 text-sm text-slate-600">
             {items.map((item) => (
-              <li key={item.product.id} className="flex items-center justify-between gap-2">
-                <div>
-                  <p>
-                    {item.product.name} x {item.quantity}
-                  </p>
+              <li key={item.product.id} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-slate-900">{item.product.name}</p>
                   <p className="text-xs text-slate-500">${Number(item.product.price).toFixed(2)} each</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -169,6 +158,7 @@ export const CheckoutPage = () => {
                   >
                     -
                   </button>
+                  <span className="min-w-5 text-center font-semibold text-slate-800">{item.quantity}</span>
                   <button
                     type="button"
                     onClick={() => addItem(item.product)}
@@ -180,6 +170,7 @@ export const CheckoutPage = () => {
               </li>
             ))}
           </ul>
+
           <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
             <span className="font-semibold text-slate-700">Total</span>
             <span className="font-display text-xl text-slate-900">${total.toFixed(2)}</span>

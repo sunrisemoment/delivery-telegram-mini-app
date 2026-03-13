@@ -1,0 +1,53 @@
+vps320449.iceservers.net {
+    # Backend API on port 3000
+    handle_path /api/* {
+        reverse_proxy localhost:3000
+    }
+    
+    # Admin Dashboard on port 3001
+    handle_path /admin/* {
+        reverse_proxy localhost:3001
+    }
+    
+    # Other app on port 3002
+    handle_path /app/* {
+        reverse_proxy localhost:3002
+    }
+    
+    # Optional: Root path
+    handle {
+        reverse_proxy localhost:3000
+    }
+    
+    # Headers
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+    }
+}
+
+# {
+#     # Use self-signed certificates for testing
+#     local_certs
+# }
+
+# vps320449.iceservers.net {
+#     tls internal
+#     reverse_proxy localhost:3000
+# }
+
+# api.vps320449.iceservers.net {
+#     tls internal
+#     reverse_proxy localhost:3000
+# }
+
+# admin.vps320449.iceservers.net {
+#     tls internal
+#     reverse_proxy localhost:3001
+# }
+
+# service.vps320449.iceservers.net {
+#     tls internal
+#     reverse_proxy localhost:3002
+# }
